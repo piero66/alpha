@@ -62,8 +62,7 @@ class RealtimeEventSource(AbstractEventSource):
                 code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
 
                 try:
-                    quotation = easyquotation.use('qq')
-                    self._env.data_source.realtime_quotes_df = quotation.stocks(code_list)
+                    self._env.data_source.realtime_quotes_df = get_realtime_quotes(code_list)
                 except Exception as e:
                     system_log.exception("get_realtime_quotes fail")
                     continue

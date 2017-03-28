@@ -65,12 +65,14 @@ def order_book_id_2_tushare_code(order_book_id):
 
 def get_realtime_quotes(code_list, open_only=False):
     import tushare as ts
-
+    import easyquotation
+    quotation = easyquotation.use('qq')
+    
     max_len = 800
     loop_cnt = int(math.ceil(float(len(code_list)) / max_len))
 
     total_df = reduce(lambda df1, df2: df1.append(df2),
-                      [ts.get_realtime_quotes([code for code in code_list[i::loop_cnt]])
+                      [quotation.stocks([code for code in code_list[i::loop_cnt]])
                        for i in range(loop_cnt)])
     total_df["is_index"] = False
 
@@ -91,9 +93,6 @@ def get_realtime_quotes(code_list, open_only=False):
 
     total_df["order_book_id"] = total_df.index
     total_df["order_book_id"] = total_df["order_book_id"].apply(tushare_code_2_order_book_id)
-
-    total_df["datetime"] = total_df["date"] + " " + total_df["time"]
-    total_df["datetime"] = total_df["datetime"].apply(lambda x: convert_dt_to_int(datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S")))
 
     total_df["close"] = total_df["price"]
 
