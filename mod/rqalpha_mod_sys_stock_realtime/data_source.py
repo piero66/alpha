@@ -17,10 +17,11 @@
 import datetime
 
 import pandas as pd
-
-from rqalpha.data.base_data_source import BaseDataSource
-from rqalpha.environment import Environment
-from rqalpha.model.snapshot import SnapshotObject
+from ...interface import AbstractPriceBoard
+from ...data.base_data_source import BaseDataSource
+from ...environment import Environment
+from ...model.snapshot import SnapshotObject
+from .utils import get_tick
 
 
 class DataSource(BaseDataSource):
@@ -28,11 +29,13 @@ class DataSource(BaseDataSource):
         super(DataSource, self).__init__(path)
         self._env = Environment.get_instance()
         self.realtime_quotes_df = pd.DataFrame()
-
+        self.realtime_tick = None
+        
     def get_bar(self, instrument, dt, frequency):
         # if frequency == '1d':
         #     return super(DataSource, self).get_bar(instrument, dt, frequency)
 
+        
         # FIXME: 目前这样仅仅给撮合引擎用，不是定义的bar
         # FIXME: self.realtime_quotes_df 是从 event_source.py 那边「飞线」设置过来的
         bar = self.realtime_quotes_df.loc[instrument.order_book_id].to_dict()
@@ -40,7 +43,8 @@ class DataSource(BaseDataSource):
         return bar
 
     def get_last_price(self, instrument, dt):
-        return self.realtime_quotes_df.loc[instrument.order_book_id]['last']
+        print(instrument.order_book_id)
+        return get_tick(instrument.order_book_id)
 
     def current_snapshot(self, instrument, frequency, dt):
         snapshot_dict = self.realtime_quotes_df.loc[instrument.order_book_id].to_dict()
