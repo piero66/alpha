@@ -8,20 +8,29 @@ def init(context):
     # 选择股票
     context.s1 = "600104.XSHG"
     context.s2 = "000895.XSHE"
-
+    context.isEmpty = True
     context.ONE_HAND = 100
-
+    
 # 你选择的证券的数据更新将会触发此段逻辑，例如日或分钟历史数据切片或者是实时数据切片更新
 def handle_bar(context, bar_dict):
     # 开始编写你的主要的算法逻辑
-
+    if context.isEmpty:
+        order_lots(context.s1, 1000)
+        order_lots(context.s2, 1000)
+        context.isEmpty = False
+    
     # bar_dict[order_book_id] 可以拿到某个证券的bar信息
     # context.portfolio 可以拿到现在的投资组合状态信息
 
     # 使用order_shares(id_or_ins, amount)方法进行落单
     price1 = history_bars(context.s1, 1, '1m', 'tick')[context.s1]
     price2 = history_bars(context.s2, 1, '1m', 'tick')[context.s2]
-    print(type(price1))
+    # print(price1['bid'][0] - price2['ask'][0])
+    # print(price1['ask'][0] - price2['bid'][0])
+
+    # WAIT TO FIX
+    # order_lots and order_shares 调用会出现问题
+    
     if price1['bid'][0] - price2['ask'][0] > 3:
         order_lots(context.s1, -1)
         order_lots(context.s2, 1)
