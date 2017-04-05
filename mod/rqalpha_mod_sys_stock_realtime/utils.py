@@ -82,6 +82,7 @@ def get_tick(order_book_id_list, resource='sina'):   # copy from dalao
             'order_book_id': code_2_order_book_id(code),
             'datetime': parse('%s %s' % (data['date'], data['time'])),
             'open': data['open'],
+            'close': data['now'],
             'last': data['now'],
             'low': data['low'],
             'high': data['high'],
