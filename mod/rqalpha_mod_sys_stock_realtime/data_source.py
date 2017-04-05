@@ -21,7 +21,7 @@ from ...interface import AbstractPriceBoard
 from ...data.base_data_source import BaseDataSource
 from ...environment import Environment
 from ...model.snapshot import SnapshotObject
-from .utils import get_tick
+from .utils import get_tick, order_book_id_2_code
 
 
 class DataSource(BaseDataSource):
@@ -38,12 +38,13 @@ class DataSource(BaseDataSource):
         
         # FIXME: 目前这样仅仅给撮合引擎用，不是定义的bar
         # FIXME: self.realtime_quotes_df 是从 event_source.py 那边「飞线」设置过来的
-        bar = self.realtime_quotes_df.loc[instrument.order_book_id].to_dict()
-
+        bar = self.realtime_tick[order_book_id_2_code(instrument.order_book_id)]
+        
+        bar = self.realtime_quotes_df.loc[order_book_id_2_code(instrument.order_book_id)].to_dict()
+        # print(bar)
         return bar
 
     def get_last_price(self, instrument, dt):
-        print(instrument.order_book_id)
         return get_tick(instrument.order_book_id)
 
     def current_snapshot(self, instrument, frequency, dt):

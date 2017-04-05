@@ -60,7 +60,6 @@ class RealtimeEventSource(AbstractEventSource):
             if not is_holiday_today() and is_tradetime_now():
                 order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
                 code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
-
                 try:
                     self._env.data_source.realtime_tick = get_tick(code_list)
                 except Exception as e:
@@ -75,29 +74,30 @@ class RealtimeEventSource(AbstractEventSource):
             time.sleep(1)
 
     def clock_worker(self):
+        time.sleep(1)
         while True:
             break
             # wait for the first data ready
-            #if not self._env.data_source.realtime_quotes_df.empty:
-                #break
-            #time.sleep(0.1)
+            if not self._env.data_source.realtime_quotes_df.empty:
+                break
+            time.sleep(0.1)
 
         while True:
             time.sleep(self.fps)
 
-            #if is_holiday_today():
-                #time.sleep(60)
-                #continue
+            if is_holiday_today():
+                time.sleep(60)
+                continue
 
             dt = datetime.datetime.now()
-
-            #if dt.strftime("%H:%M:%S") >= "08:30:00" and dt.date() > self.before_trading_fire_date:
-                #self.event_queue.put((dt, EVENT.BEFORE_TRADING))
-                #self.before_trading_fire_date = dt.date()
-            #elif dt.strftime("%H:%M:%S") >= "15:10:00" and dt.date() > self.after_trading_fire_date:
-                #self.event_queue.put((dt, EVENT.AFTER_TRADING))
-                #self.after_trading_fire_date = dt.date()
-
+            
+            if dt.strftime("%H:%M:%S") >= "08:30:00" and dt.date() > self.before_trading_fire_date:
+                self.event_queue.put((dt, EVENT.BEFORE_TRADING))
+                self.before_trading_fire_date = dt.date()
+            elif dt.strftime("%H:%M:%S") >= "15:10:00" and dt.date() > self.after_trading_fire_date:
+                self.event_queue.put((dt, EVENT.AFTER_TRADING))
+                self.after_trading_fire_date = dt.date()
+            
             #if is_tradetime_now():
             self.event_queue.put((dt, EVENT.BAR))
 
