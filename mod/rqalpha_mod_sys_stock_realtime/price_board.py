@@ -9,4 +9,4 @@ class PriceBoard(AbstractPriceBoard):
 	
 	def get_last_price(self, order_book_id):
 		
-		return get_tick(order_book_id)
+		return get_tick(order_book_id)[order_book_id]['last']
