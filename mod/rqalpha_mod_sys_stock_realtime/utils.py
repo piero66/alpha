@@ -17,18 +17,17 @@
 import math
 import time
 import datetime
-from six.moves import reduce
 import easyquotation
+from six.moves import reduce
 from dateutil.parser import parse
 import numpy as np
 
-
-from ...utils.datetime_func import convert_dt_to_int
+from rqalpha.utils.datetime_func import convert_dt_to_int
 
 
 def is_holiday_today():
     today = datetime.date.today()
-    from ...environment import Environment
+    from rqalpha.environment import Environment
     return not Environment.get_instance().data_proxy.is_trading_date(today)
 
 
@@ -38,6 +37,7 @@ def is_tradetime_now():
     if (9, 15, 0) <= now <= (11, 30, 0) or (13, 0, 0) <= now <= (15, 0, 0):
         return True
     return False
+
 
 CODE_MAPPING = {
     "sh": "000001.XSHG",
@@ -60,23 +60,23 @@ def code_2_order_book_id(code):
             return "{}.XSHE".format(code)
         else:
             return "{}.XSHE".format(code)
-            #raise RuntimeError("Unknown code") how to solve fenji A B M .etc
+            # raise RuntimeError("Unknown code") how to solve fenji A B M .etc
 
 
 def order_book_id_2_code(order_book_id):
     return order_book_id.split(".")[0]
 
 
-def get_tick(order_book_id_list, resource='sina'):   # copy from dalao
+def get_tick(order_book_id_list, resource='sina'):  # copy from dalao
     tick_dict = {}
     quotation = easyquotation.use(resource)
     if type(order_book_id_list) == str:
         order_book_id_list = [order_book_id_list]
-        
+    
     code_list = [order_book_id_2_code(order_book_id) for order_book_id in order_book_id_list]
-
+    
     eq_dict = quotation.stocks(code_list)
-
+    
     for code, data in eq_dict.items():
         tick = {
             'order_book_id': code_2_order_book_id(code),
@@ -170,9 +170,8 @@ def get_realtime_quotes(code_list, open_only=False):
     index_df["code"] = index_symbol
     index_df["is_index"] = True
     total_df = total_df.append(index_df)
-    total_df = total_df.set_index("code").sort_index()
 
-    columns = set(total_df.columns) - set(["name", "time", "date"])
+    columns = set(total_df.columns) - set(["name", "time", "date", "code"])
     # columns = filter(lambda x: "_v" not in x, columns)
     for label in columns:
         total_df[label] = total_df[label].map(lambda x: 0 if str(x).strip() == "" else x)
@@ -180,16 +179,21 @@ def get_realtime_quotes(code_list, open_only=False):
 
     total_df["chg"] = total_df["price"] / total_df["pre_close"] - 1
 
-    total_df["order_book_id"] = total_df.index
+    total_df["order_book_id"] = total_df["code"]
     total_df["order_book_id"] = total_df["order_book_id"].apply(tushare_code_2_order_book_id)
+
+    total_df = total_df.set_index("order_book_id").sort_index()
 
     total_df["datetime"] = total_df["date"] + " " + total_df["time"]
     total_df["datetime"] = total_df["datetime"].apply(lambda x: convert_dt_to_int(datetime.datetime.strptime(x, "%Y-%m-%d %H:%M:%S")))
 
     total_df["close"] = total_df["price"]
+    total_df["last"] = total_df["price"]
+
+    total_df["limit_up"] = total_df.apply(lambda row: row.pre_close * (1.1 if "ST" not in row["name"] else 1.05), axis=1).round(2)
+    total_df["limit_down"] = total_df.apply(lambda row: row.pre_close * (0.9 if "ST" not in row["name"] else 0.95), axis=1).round(2)
 
     if open_only:
         total_df = total_df[total_df.open > 0]
 
     return total_df
-

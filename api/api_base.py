@@ -406,8 +406,8 @@ def history_bars(order_book_id, bar_count, frequency, fields=None, skip_suspende
     if frequency == '1m' and env.config.base.frequency == '1d':
         raise RQInvalidArgument('can not get minute history in day back test')
 
-    if (env.config.base.frequency == '1m' and frequency == '1d') or \
-        (frequency == '1d' and ExecutionContext.phase == EXECUTION_PHASE.BEFORE_TRADING):
+    if ((env.config.base.frequency == '1m' and frequency == '1d') or
+        (frequency == '1d' and ExecutionContext.phase == EXECUTION_PHASE.BEFORE_TRADING)):
         # 在分钟回测获取日线数据, 应该推前一天，这里应该使用 trading date
         dt = env.data_proxy.get_previous_trading_date(env.trading_dt)
     if fields == 'tick':
@@ -671,7 +671,7 @@ def to_date(date):
             return date.date()
         except AttributeError:
             return date
-    
+
     raise RQInvalidArgument('unknown date value: {}'.format(date))
 
 
@@ -691,7 +691,7 @@ def get_dividend(order_book_id, start_date, adjusted=True):
     start_date = to_date(start_date)
     if start_date > dt:
         raise RQInvalidArgument(
-            _('in get_dividend, start_date {} is later than the previous test day {}').format(
+            _(u"in get_dividend, start_date {} is later than the previous test day {}").format(
                 start_date, dt
             ))
     order_book_id = assure_order_book_id(order_book_id)
@@ -745,10 +745,3 @@ def current_snapshot(id_or_symbol):
     frequency = env.config.base.frequency
     order_book_id = assure_order_book_id(id_or_symbol)
     return env.data_proxy.current_snapshot(order_book_id, frequency, env.calendar_dt)
-
-@export_as_api
-@ExecutionContext.enforce_phase(EXECUTION_PHASE.ON_BAR,
-                                EXECUTION_PHASE.ON_TICK,
-                                EXECUTION_PHASE.SCHEDULED)
-def get_current_tick(order_book_id):
-    return Environment.get_instance().data_proxy.get_last_price(order_book_id, None)

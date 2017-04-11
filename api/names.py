@@ -17,7 +17,7 @@
 VALID_HISTORY_FIELDS = [
     'datetime', 'open', 'close', 'high', 'low', 'total_turnover', 'volume',
     'acc_net_value', 'discount_rate', 'unit_net_value',
-    'limit_up', 'limit_down', 'open_interest', 'basis_spread', 'settlement', 'prev_settlement'
+    'limit_up', 'limit_down', 'open_interest', 'basis_spread', 'settlement', 'prev_settlement','tick'
 ]
 
 VALID_GET_PRICE_FIELDS = [
