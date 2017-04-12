@@ -18,3 +18,4 @@ import pandas as pd
 
 
 realtime_quotes_df = pd.DataFrame()
+realtime_tick = {}

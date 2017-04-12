@@ -415,6 +415,8 @@ def history_bars(order_book_id, bar_count, frequency, fields=None, skip_suspende
         (frequency == '1d' and ExecutionContext.phase == EXECUTION_PHASE.BEFORE_TRADING)):
         # 在分钟回测获取日线数据, 应该推前一天，这里应该使用 trading date
         dt = env.data_proxy.get_previous_trading_date(env.trading_dt)
+    if fields == 'tick':
+        return env.data_proxy.get_last_price(order_book_id, None)
 
     return env.data_proxy.history_bars(order_book_id, bar_count, frequency, fields, dt, skip_suspended, include_now)
 

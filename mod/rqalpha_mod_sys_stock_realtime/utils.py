@@ -17,7 +17,10 @@
 import math
 import time
 import datetime
+import easyquotation
 from six.moves import reduce
+from dateutil.parser import parse
+import numpy as np
 
 from rqalpha.utils.datetime_func import convert_dt_to_int
 
@@ -34,6 +37,94 @@ def is_tradetime_now():
     if (9, 15, 0) <= now <= (11, 30, 0) or (13, 0, 0) <= now <= (15, 0, 0):
         return True
     return False
+
+
+CODE_MAPPING = {
+    "sh": "000001.XSHG",
+    "sz": "399001.XSHE",
+    "sz50": "000016.XSHG",
+    "hs300": "000300.XSHG",
+    "sz500": "000905.XSHG",
+    "zxb": "399005.XSHE",
+    "cyb": "399006.XSHE",
+}
+
+
+def code_2_order_book_id(code):
+    try:
+        return CODE_MAPPING[code]
+    except KeyError:
+        if code.startswith("6"):
+            return "{}.XSHG".format(code)
+        elif code[0] in ["3", "0"]:
+            return "{}.XSHE".format(code)
+        else:
+            return "{}.XSHE".format(code)
+            # raise RuntimeError("Unknown code") how to solve fenji A B M .etc
+
+
+def order_book_id_2_code(order_book_id):
+    return order_book_id.split(".")[0]
+
+
+def get_tick(order_book_id_list, resource='sina'):  # copy from dalao
+    tick_dict = {}
+    quotation = easyquotation.use(resource)
+    if type(order_book_id_list) == str:
+        order_book_id_list = [order_book_id_list]
+    
+    code_list = [order_book_id_2_code(order_book_id) for order_book_id in order_book_id_list]
+    
+    eq_dict = quotation.stocks(code_list)
+    
+    for code, data in eq_dict.items():
+        tick = {
+            'order_book_id': code_2_order_book_id(code),
+            'datetime': parse('%s %s' % (data['date'], data['time'])),
+            'open': data['open'],
+            'close': data['now'],
+            'last': data['now'],
+            'low': data['low'],
+            'high': data['high'],
+            'prev_close': data['close'],
+            'volume': data['volume'],
+            'total_turnover': data['turnover'],
+            'open_interest': np.nan,
+            'prev_settlement': np.nan,
+            
+            'bid': [
+                data['bid1'],
+                data['bid2'],
+                data['bid3'],
+                data['bid4'],
+                data['bid5'],
+            ],
+            'bid_volume': [
+                data['bid1_volume'],
+                data['bid2_volume'],
+                data['bid3_volume'],
+                data['bid4_volume'],
+                data['bid5_volume'],
+            ],
+            'ask': [
+                data['ask1'],
+                data['ask2'],
+                data['ask3'],
+                data['ask4'],
+                data['ask5'],
+            ],
+            'ask_volume': [
+                data['ask1_volume'],
+                data['ask2_volume'],
+                data['ask3_volume'],
+                data['ask4_volume'],
+                data['ask5_volume'],
+            ],
+            'limit_up': np.nan,
+            'limit_down': np.nan,
+        }
+        tick_dict[code_2_order_book_id(code)] = tick
+    return tick_dict
 
 
 TUSHARE_CODE_MAPPING = {

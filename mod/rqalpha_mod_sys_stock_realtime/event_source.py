@@ -65,6 +65,11 @@ class RealtimeEventSource(AbstractEventSource):
             if not is_holiday_today() and is_tradetime_now():
                 order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
                 code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
+                try:
+                    data_board.realtime_tick = get_tick(code_list)
+                except Exception as e:
+                    system_log.exception("get_tick fail")
+                    continue
 
                 try:
                     data_board.realtime_quotes_df = get_realtime_quotes(code_list)
