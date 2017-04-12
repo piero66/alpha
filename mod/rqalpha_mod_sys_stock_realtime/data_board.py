@@ -14,16 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .logger import system_log
+import pandas as pd
 
 
-def import_mod(mod_name):
-    try:
-        from importlib import import_module
-        return import_module(mod_name)
-    except Exception as e:
-        system_log.error("*" * 10)
-        system_log.error("Mod Import Error: ")
-        system_log.error(e)
-        system_log.error("*" * 10)
-        return None
+realtime_quotes_df = pd.DataFrame()
+realtime_tick = {}

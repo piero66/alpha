@@ -1,18 +1,44 @@
-2017.3.21 
+2017.4.11
+TO DONE
+1.综合策略
+
+DONE
+1.服务器完成配置
+2.模拟下单不能卖的问题已解决 未测试
+
+2017.4.6
 TO DO
-1.�ڽ���ʱ���ʹ��simple_stock_realtime_trade��ģ�⽻�ײ��� �������û���⣬������д����Խ����ж������ʼ����Ͳ��ԡ�
-2.�������ݰ�bound��ʹ�÷���
-3.�ȴ�24�գ�rqalpha2.0�汾����
-4.easyquotation,modֲ���ֱ����Ϊsimple_stock_realtime_trade������Դ��
+1.解决histroy_share的问题
+2.测试策略
+
+DONE
+1.策略文件，配置信息文件
+2.更新mod，解决bug
+
+2017.3.28
+TO DO
+1.编写策略，测试代码
+2.测试2.0beta，如果有什么问题 roll back to RqAlpha 0.3.14
+
 Done
-һ������rqalpha
-1.�����Դ�mod��simple_stock_realtime_trade��ʵ��
-  ʵ���˼򵥲��ԵĻز⡣��ģ��Ҳ���ˣ��������ζ����ڽ���ʱ���û�����������
-2.������rqalpha������ṹ�ķ������ҵ��ؼ��ļ�����
-	a.rq��Ȼ�з��Ӽ����ݵĲ��������Ӽ��Ĵ���û��ʵ��
-	b.����Դ�����غõ�bcolz���ݰ�����ʷ���ݿɿ���ֱ�Ӵ�������غõ�bound����ȡ��
-	c.����ʵʱtick��Ҫ�������Ƿ�Ҫ������ģ�����ͬ��
-��������106.15.34.161������
-1.��װ��rqalpha��������������������
-2.��������firefox����ʹ�� ��chrome�滻 ʹ�÷��� ���������� chrome
-3.װ��PyCharm IDE
+1.rq 2.0beta更新
+2.已更改数据源为easyquotation，待测试
+
+2017.3.21
+TO DO
+1.在交易时间点使用simple_stock_realtime_trade做模拟交易测试 如果这里没问题，可以先写入策略进行判定，并邮件发送测试。
+2.分析数据包bound的使用方法
+3.等待24日，rqalpha2.0版本更新
+4.easyquotation,mod植入或直接作为simple_stock_realtime_trade的数据源。
+Done
+一、关于rqalpha
+1.关于自带mod，simple_stock_realtime_trade的实验
+  实现了简单策略的回测。（模拟也跑了，但是两次都不在交易时间点没看到结果）。
+2.又做了rqalpha的整体结构的分析，找到关键的几个点
+	a.rq虽然有分钟级数据的参数，分钟级的代码没有实现
+	b.数据源有下载好的bcolz数据包，历史数据可考虑直接从这个下载好的bound包获取。
+	c.引入实时tick需要的数据是否要与整个模块的相同。
+二、关于106.15.34.161服务器
+1.安装好rqalpha环境及其所需依赖包。
+2.服务器上firefox不能使用 用chrome替换 使用方法 命令行输入 chrome
+3.装好PyCharm IDE
