@@ -36,9 +36,7 @@ def emailsender(receivers, all_text, event_subject):
 
 def insert_2_text(filename, order):
 	fp = open(filename, 'a')
-	info = order.datetime.strftime("%Y-%m-%d %H:%M:%S") + ' ' + str(order.order_book_id) + ' ' \
-		+ str(order.side) + ' ' + str(order.quantity)
+	info = order.datetime.strftime("%Y-%m-%d %H:%M:%S") + '  ' + str(order.order_book_id) + '  ' \
+		+ str(order.side) + '  ' + str(order.quantity) + '  ' + str(order.price)
 	fp.writelines(info+'\n')
-	
-	
-	
+	return info
