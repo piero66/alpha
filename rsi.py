@@ -35,36 +35,37 @@ def handle_bar(context, bar_dict):
     
     price1 = history_bars(context.s1, 1, '1m', 'tick')
     price2 = history_bars(context.s2, 1, '1m', 'tick')
-    
+    volume1 = price1['bid_volume'][0]
+    volume2 = price2['ask_volume'][0]
     # wait to fix 下单失败后 尚未处理
     # 策略逻辑
-    if price1['bid'][1] - price2['ask'][1] > 3:
+    if price1['bid'][0] - price2['ask'][0] > 4.1:
         if context.orderFlag1:
             order1 = order_lots(context.s1, 1)
             order2 = order_lots(context.s2, 1)
             if order1.status == ORDER_STATUS.FILLED and order2.status == ORDER_STATUS.FILLED:
-                insert_2_text(context.logFileName, order1)
-                insert_2_text(context.logFileName, order2)
+                info1 = insert_2_text(context.logFileName, order1)  # order信息 保存到本地
+                info2 = insert_2_text(context.logFileName, order2)  # order信息 保存到本地
                 context.orderFlag1 = False
-                # emailSender(context.receivers, all_text, order_subject)
+                all_text = info1 + '\n' + info2
+                emailsender(context.receivers, all_text, 'stock_order')
             else:
-                user_system_log.info('下单失败')
                 context.orderFlag1 = True
         
     else:
         context.orderFlag1 = True
         
-    if price1['ask'][1] - price2['bid'][1] < 2.5:
+    if price1['ask'][0] - price2['bid'][0] < 3.5:
         if context.orderFlag2:
             order1 = order_lots(context.s1, 1)
             order2 = order_lots(context.s2, -1)
             if order1.status == ORDER_STATUS.FILLED and order2.status == ORDER_STATUS.FILLED:
-                insert_2_text(context.logFileName, order1)
-                insert_2_text(context.logFileName, order2)
+                info1 = insert_2_text(context.logFileName, order1)  # order信息 保存到本地
+                info2 = insert_2_text(context.logFileName, order2)  # order信息 保存到本地
                 context.orderFlag2 = False
-                # emailSender(context.receivers, all_text, order_subject)
+                all_text = info1 + '\n' + info2
+                emailsender(context.receivers, all_text, 'stock_order')
             else:
-                user_system_log.info('下单失败')
                 context.orderFlag2 = True
     else:
         context.orderFlag2 = True
