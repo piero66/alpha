@@ -25,7 +25,7 @@ from rqalpha.environment import Environment
 from rqalpha.utils.logger import system_log
 from rqalpha.events import Event, EVENT
 from rqalpha.utils import rq_json
-from .utils import get_realtime_quotes, order_book_id_2_tushare_code, is_holiday_today, is_tradetime_now
+from .utils import get_tick, get_realtime_quotes, order_book_id_2_tushare_code, is_holiday_today, is_tradetime_now
 from . import data_board
 
 
@@ -102,7 +102,7 @@ class RealtimeEventSource(AbstractEventSource):
                 self.event_queue.put((dt, EVENT.AFTER_TRADING))
                 self.after_trading_fire_date = dt.date()
             elif dt.strftime("%H:%M:%S") >= "15:10:00" and dt.date() > self.settlement_fire_date:
-            #or (dt.date()-self.settlement_fire_date).days >= 2:
+            # or (dt.date()-self.settlement_fire_date).days >= 2:
                 self.event_queue.put((dt, EVENT.SETTLEMENT))
                 self.settlement_fire_date = dt.date()
 
