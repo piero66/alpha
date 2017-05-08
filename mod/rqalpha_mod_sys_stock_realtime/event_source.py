@@ -20,7 +20,6 @@ from threading import Thread
 
 from six.moves.queue import Queue, Empty
 
-from rqalpha import main
 from rqalpha.interface import AbstractEventSource
 from rqalpha.environment import Environment
 from rqalpha.utils.logger import system_log
@@ -47,10 +46,7 @@ class RealtimeEventSource(AbstractEventSource):
 
         self.clock_engine_thread = Thread(target=self.clock_worker)
         self.clock_engine_thread.daemon = True
-        
-        self.his_quotation_engine_thread = Thread(target=self.his_quotation_worker)
-        self.his_quotation_engine_thread.daemon = True
-        
+
     def set_state(self, state):
         persist_dict = rq_json.convert_json_to_dict(state.decode('utf-8'))
         self.before_trading_fire_date = persist_dict['before_trading_fire_date']
@@ -64,21 +60,17 @@ class RealtimeEventSource(AbstractEventSource):
             "settlement_fire_date": self.settlement_fire_date,
         }).encode('utf-8')
 
-    def his_quotation_worker(self):
-        main.update_bundle(r"d:\rqalpha00\.rqalpha", confirm=False)
-    
     def quotation_worker(self):
         while True:
             if not is_holiday_today() and is_tradetime_now():
                 order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
                 code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
-                
                 try:
                     data_board.realtime_tick = get_tick(code_list)
                 except Exception as e:
                     system_log.exception("get_tick fail")
                     continue
-    
+
                 try:
                     data_board.realtime_quotes_df = get_realtime_quotes(code_list)
                 except Exception as e:
@@ -104,7 +96,6 @@ class RealtimeEventSource(AbstractEventSource):
             dt = datetime.datetime.now()
 
             if dt.strftime("%H:%M:%S") >= "08:30:00" and dt.date() > self.before_trading_fire_date:
-                self.his_quotation_engine_thread.start()
                 self.event_queue.put((dt, EVENT.BEFORE_TRADING))
                 self.before_trading_fire_date = dt.date()
             elif dt.strftime("%H:%M:%S") >= "15:10:00" and dt.date() > self.after_trading_fire_date:

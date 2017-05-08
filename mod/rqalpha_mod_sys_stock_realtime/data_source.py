@@ -30,7 +30,6 @@ class DataSource(BaseDataSource):
         self._env = Environment.get_instance()
 
     def get_bar(self, instrument, dt, frequency):
-        #bar = data_board.realtime_tick[instrument.order_book_id]
         bar = data_board.realtime_quotes_df.loc[instrument.order_book_id].to_dict()
         return bar
 
