@@ -1,7 +1,7 @@
 from rqalpha.api import *
 
 import pandas as pd
-from ext_utils import get_fundamental
+from ext_utils import get_fundamental, get_tick, insert_2_text, emailsender
 
 import numpy as np
 from datetime import datetime, timedelta
@@ -19,7 +19,7 @@ def init(context):
 	context.isSelectByEps = False
 	context.total = 200
 	context.period = 130
-	context.tradePeriod = 3
+	context.tradePeriod = 1
 	context.flag = -1
 	context.holdSize = 8
 	context.holdWeight = 0.125
@@ -28,7 +28,9 @@ def init(context):
 	context.stocks1 = []
 	context.stocks2 = []
 	context.isSafe = True
-
+	
+	context.logFileName = 'log_info.txt'
+	context.receivers = ['623486086@qq.com']
 
 def before_trading(context, bar_dict):
 	context.flag += 1
@@ -69,9 +71,8 @@ def isSafe(bar_dict, context):
 	zs8 = '399333.XSHE'  # 创业板指数
 	his = history_bars(zs2, 20, '1d', 'close')
 	his2 = history_bars(zs8, 20, '1d', 'close')
-	
-	close1 = history_bars(zs2, 1, '1d', 'tick')['close']
-	close2 = history_bars(zs8, 1, '1d', 'tick')['close']
+	close1 = bar_dict[zs2].close
+	close2 = get_tick(zs8)[zs8]['close']
 	ret2 = close1 / his[0] - 1
 	ret8 = close2 / his2[0] - 1
 	
@@ -143,7 +144,7 @@ def filterNewStk(context, bar_dict, stk):
 
 
 def handle_bar(context, bar_dict):
-	if context.flag % context.tradePeriod == 0:
+	if True:  # context.flag % context.tradePeriod == 0:
 		now = context.now
 		if now.hour == 14 and now.minute == 40:
 			if isSafe(bar_dict, context):
@@ -195,17 +196,30 @@ def handle_bar(context, bar_dict):
 			weight = context.portfolio.portfolio_value * context.holdWeight
 			for stk in context.portfolio.positions.keys():
 				if stk not in tgtOrder.keys():
-					order_target_percent(stk, 0)
+					order1 = order_target_percent(stk, 0)
+					# email and persist
+					info1 = insert_2_text(context.logFileName, order1)
+					emailsender(context.receivers, info1, 'stock_order_info')
 				if context.portfolio.positions[stk].market_value > weight:
-					order_target_value(stk, weight * 0.99)
+					order1 = order_target_value(stk, weight * 0.99)
+					# email and persist
+					info1 = insert_2_text(context.logFileName, order1)
+					emailsender(context.receivers, info1, 'stock_order_info')
+					
 		
 		if now.hour == 14 and now.minute >= 45:
 			for stk in tgtOrder.keys():
 				if context.portfolio.positions[stk].market_value > tgtOrder[stk] * 0.97:
 					context.isBuy[stk] = False
 				if stk not in context.portfolio.positions.keys():
-					order_target_value(stk, tgtOrder[stk])
+					order1 = order_target_value(stk, tgtOrder[stk])
+					# email and persist
+					info1 = insert_2_text(context.logFileName, order1)
+					emailsender(context.receivers, info1, 'stock_order_info')
 				if stk in context.portfolio.positions.keys() and context.portfolio.positions[stk].market_value < \
 								tgtOrder[stk] * 0.98 and context.isBuy[stk]:
-					order_target_value(stk, tgtOrder[stk])
+					order1 = order_target_value(stk, tgtOrder[stk])
+					# email and persist
+					info1 = insert_2_text(context.logFileName, order1)
+					emailsender(context.receivers, info1, 'stock_order_info')
 
