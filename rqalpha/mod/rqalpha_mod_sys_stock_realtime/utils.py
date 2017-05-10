@@ -17,10 +17,10 @@
 import math
 import time
 import datetime
-import easyquotation
 from six.moves import reduce
-from dateutil.parser import parse
 import numpy as np
+import easyquotation
+from dateutil.parser import parse
 
 from rqalpha.utils.datetime_func import convert_dt_to_int
 
@@ -64,6 +64,8 @@ def code_2_order_book_id(code):
 
 
 def order_book_id_2_code(order_book_id):
+    if order_book_id == "000016.XSHG":
+        return "sh000016"
     return order_book_id.split(".")[0]
 
 
@@ -77,53 +79,108 @@ def get_tick(order_book_id_list, resource='sina'):  # copy from dalao
     
     eq_dict = quotation.stocks(code_list)
     
-    for code, data in eq_dict.items():
-        tick = {
-            'order_book_id': code_2_order_book_id(code),
-            'datetime': parse('%s %s' % (data['date'], data['time'])),
-            'open': data['open'],
-            'close': data['now'],
-            'last': data['now'],
-            'low': data['low'],
-            'high': data['high'],
-            'prev_close': data['close'],
-            'volume': data['volume'],
-            'total_turnover': data['turnover'],
-            'open_interest': np.nan,
-            'prev_settlement': np.nan,
-            
-            'bid': [
-                data['bid1'],
-                data['bid2'],
-                data['bid3'],
-                data['bid4'],
-                data['bid5'],
-            ],
-            'bid_volume': [
-                data['bid1_volume'],
-                data['bid2_volume'],
-                data['bid3_volume'],
-                data['bid4_volume'],
-                data['bid5_volume'],
-            ],
-            'ask': [
-                data['ask1'],
-                data['ask2'],
-                data['ask3'],
-                data['ask4'],
-                data['ask5'],
-            ],
-            'ask_volume': [
-                data['ask1_volume'],
-                data['ask2_volume'],
-                data['ask3_volume'],
-                data['ask4_volume'],
-                data['ask5_volume'],
-            ],
-            'limit_up': np.nan,
-            'limit_down': np.nan,
-        }
-        tick_dict[code_2_order_book_id(code)] = tick
+    if resource == 'sina':
+        for code, data in eq_dict.items():
+            tick = {
+                'order_book_id': code_2_order_book_id(code),
+                'datetime': parse('%s %s' % (data['date'], data['time'])),
+                'open': data['open'],
+                'close': data['now'],
+                'last': data['now'],
+                'low': data['low'],
+                'high': data['high'],
+                'prev_close': data['close'],
+                'volume': data['volume'],
+                'total_turnover': data['turnover'],
+                'open_interest': np.nan,
+                'prev_settlement': np.nan,
+                
+                'bid': [
+                    data['bid1'],
+                    data['bid2'],
+                    data['bid3'],
+                    data['bid4'],
+                    data['bid5'],
+                ],
+                'bid_volume': [
+                    data['bid1_volume'],
+                    data['bid2_volume'],
+                    data['bid3_volume'],
+                    data['bid4_volume'],
+                    data['bid5_volume'],
+                ],
+                'ask': [
+                    data['ask1'],
+                    data['ask2'],
+                    data['ask3'],
+                    data['ask4'],
+                    data['ask5'],
+                ],
+                'ask_volume': [
+                    data['ask1_volume'],
+                    data['ask2_volume'],
+                    data['ask3_volume'],
+                    data['ask4_volume'],
+                    data['ask5_volume'],
+                ],
+                'limit_up': np.nan,
+                'limit_down': np.nan,
+            }
+            tick_dict[code_2_order_book_id(code)] = tick
+    
+    elif resource == 'qq':
+        for code, data in eq_dict.items():
+            tick = {
+                'order_book_id': code_2_order_book_id(code),
+                'datetime': data['datetime'],
+                'open': data['open'],
+                'close': data['now'],
+                'last': data['now'],
+                'low': data['low'],
+                'high': data['high'],
+                'prev_close': data['close'],
+                'volume': data['volume'],
+                'total_turnover': data['turnover'],
+                'open_interest': np.nan,
+                'prev_settlement': np.nan,
+                
+                'PE': data['PE'],
+                'PB': data['PB'],
+                'circulation_market_value': data['流通市值'],
+                'total_market_value': data['总市值'],
+                'bid': [
+                    data['bid1'],
+                    data['bid2'],
+                    data['bid3'],
+                    data['bid4'],
+                    data['bid5'],
+                ],
+                'bid_volume': [
+                    data['bid1_volume'],
+                    data['bid2_volume'],
+                    data['bid3_volume'],
+                    data['bid4_volume'],
+                    data['bid5_volume'],
+                ],
+                'ask': [
+                    data['ask1'],
+                    data['ask2'],
+                    data['ask3'],
+                    data['ask4'],
+                    data['ask5'],
+                ],
+                'ask_volume': [
+                    data['ask1_volume'],
+                    data['ask2_volume'],
+                    data['ask3_volume'],
+                    data['ask4_volume'],
+                    data['ask5_volume'],
+                ],
+                'limit_up': np.nan,
+                'limit_down': np.nan,
+            }
+            tick_dict[code_2_order_book_id(code)] = tick
+    
     return tick_dict
 
 

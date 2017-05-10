@@ -16,7 +16,6 @@
 
 import datetime
 
-from rqalpha.utils.logger import system_log
 from rqalpha.data.base_data_source import BaseDataSource
 from rqalpha.environment import Environment
 from rqalpha.model.snapshot import SnapshotObject
@@ -30,13 +29,12 @@ class DataSource(BaseDataSource):
         self._env = Environment.get_instance()
 
     def get_bar(self, instrument, dt, frequency):
-        #bar = data_board.realtime_tick[instrument.order_book_id]
+        # bar = data_board.realtime_tick[instrument.order_book_id]
         bar = data_board.realtime_quotes_df.loc[instrument.order_book_id].to_dict()
         return bar
 
     def get_last_price(self, instrument, dt):
         return data_board.realtime_tick[instrument.order_book_id]
-        # return data_board.realtime_quotes_df.loc[instrument.order_book_id]['last']
 
     def current_snapshot(self, instrument, frequency, dt):
         snapshot_dict = data_board.realtime_quotes_df.loc[instrument.order_book_id].to_dict()

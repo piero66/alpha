@@ -47,10 +47,10 @@ class RealtimeEventSource(AbstractEventSource):
 
         self.clock_engine_thread = Thread(target=self.clock_worker)
         self.clock_engine_thread.daemon = True
-        
+
         self.his_quotation_engine_thread = Thread(target=self.his_quotation_worker)
         self.his_quotation_engine_thread.daemon = True
-        
+
     def set_state(self, state):
         persist_dict = rq_json.convert_json_to_dict(state.decode('utf-8'))
         self.before_trading_fire_date = persist_dict['before_trading_fire_date']
@@ -65,12 +65,12 @@ class RealtimeEventSource(AbstractEventSource):
         }).encode('utf-8')
 
     def his_quotation_worker(self):
-        main.update_bundle(r"d:\rqalpha00\.rqalpha", confirm=False)
-    
+        main.update_bundle(confirm=False)
+
     def quotation_worker(self):
         while True:
             if not is_holiday_today() and is_tradetime_now():
-                order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
+                order_book_id_list = sorted([instruments.order_book_id for instruments in self._env.data_proxy.all_instruments("CS", self._env.trading_dt)])
                 code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
                 
                 try:
@@ -78,7 +78,7 @@ class RealtimeEventSource(AbstractEventSource):
                 except Exception as e:
                     system_log.exception("get_tick fail")
                     continue
-    
+                    
                 try:
                     data_board.realtime_quotes_df = get_realtime_quotes(code_list)
                 except Exception as e:
@@ -111,7 +111,6 @@ class RealtimeEventSource(AbstractEventSource):
                 self.event_queue.put((dt, EVENT.AFTER_TRADING))
                 self.after_trading_fire_date = dt.date()
             elif dt.strftime("%H:%M:%S") >= "15:10:00" and dt.date() > self.settlement_fire_date:
-            # or (dt.date()-self.settlement_fire_date).days >= 2:
                 self.event_queue.put((dt, EVENT.SETTLEMENT))
                 self.settlement_fire_date = dt.date()
 

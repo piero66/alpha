@@ -14,8 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import bcolz
 
-from .api_base import *
-from .api_stock import *
-from .api_future import *
-from .api_extension import *
+
+class SimpleFactorStore(object):
+    def __init__(self, f):
+        table = bcolz.open(f, 'r')
+        self._index = table.attrs['line_map']
+        self._table = table[:]
+
+    def get_factors(self, order_book_id):
+        try:
+            s, e = self._index[order_book_id]
+            return self._table[s:e]
+        except KeyError:
+            return None
