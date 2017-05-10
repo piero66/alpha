@@ -45,7 +45,9 @@ def insert_2_text(filename, order):
 
 
 def get_fundamental(search_value):
-	order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
+	env = Environment.get_instance()
+	order_book_id_list = sorted(
+		[instruments.order_book_id for instruments in env.data_proxy.all_instruments("CS", env.trading_dt)])
 	code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
 	realtime_tick = get_tick(code_list, 'qq')
 	v_list = realtime_tick
