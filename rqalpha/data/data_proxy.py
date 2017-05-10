@@ -130,6 +130,10 @@ class DataProxy(InstrumentMixin, TradingDatesMixin):
         if bar:
             return BarObject(instrument, bar)
 
+    def get_last_price(self, order_book_id, dt):
+        instrument = self.instruments(order_book_id)
+        return self._data_source.get_last_price(instrument, dt)
+    
     def history(self, order_book_id, bar_count, frequency, field, dt):
         data = self.history_bars(order_book_id, bar_count, frequency,
                                  ['datetime', field], dt, skip_suspended=False)
