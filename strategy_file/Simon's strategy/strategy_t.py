@@ -29,6 +29,7 @@ def init(context):
 	context.stocks2 = []
 	context.isSafe = True
 	
+	context.emailSend = False
 	context.logFileName = 'log_info.txt'
 	context.receivers = ['623486086@qq.com']
 
@@ -146,7 +147,7 @@ def filterNewStk(context, bar_dict, stk):
 def handle_bar(context, bar_dict):
 	if True:  # context.flag % context.tradePeriod == 0:
 		now = context.now
-		if now.hour == 14 and now.minute == 40:
+		if now.hour == 0 and now.minute == 35:
 			if isSafe(bar_dict, context):
 				stkList = filterGem(context.stocks1, context)
 				stkList = filterStAndPaused(stkList)
@@ -157,7 +158,6 @@ def handle_bar(context, bar_dict):
 				stkList = stkList[:20]
 				stkList = getScore(stkList, bar_dict, context)
 				stkList = stkList[:context.holdSize]
-				print(stkList)
 				weight = context.portfolio.portfolio_value * context.holdWeight
 				context.tgtOrder = {}
 				context.isBuy = {}
@@ -192,25 +192,30 @@ def handle_bar(context, bar_dict):
 		#     for stk in context.stocks2 :
 		#         tgtOrder[stk]=weight
 		
-		if now.hour == 14 and now.minute >= 41:
+		if now.hour == 0 and now.minute >= 36:
 			weight = context.portfolio.portfolio_value * context.holdWeight
+			context.emailSend = False
 			email_info = ""
 			for stk in context.portfolio.positions.keys():
 				if stk not in tgtOrder.keys():
 					order1 = order_target_percent(stk, 0)
 					# email and persist
-					if order1.status == ORDER_STATUS.FILLED:
+					if order1 and order1.status == ORDER_STATUS.FILLED:
 						info1 = insert_2_text(context.logFileName, order1)
 						email_info += info1
+						context.emailSend = True
 				if context.portfolio.positions[stk].market_value > weight:
 					order1 = order_target_value(stk, weight * 0.99)
 					# email and persist
-					if order1.status == ORDER_STATUS.FILLED:
+					if order1 and order1.status == ORDER_STATUS.FILLED:
 						info1 = insert_2_text(context.logFileName, order1)
 						email_info += info1
-			emailsender(context.receivers, email_info, 'stock_order_info')
+						context.emailSend = True
+			if context.emailSend:
+				emailsender(context.receivers, email_info, 'stock_order_info')
 		
-		if now.hour == 14 and now.minute >= 45:
+		if now.hour == 0 and now.minute >= 40:
+			context.emailSend = False
 			email_info = ""
 			for stk in tgtOrder.keys():
 				if context.portfolio.positions[stk].market_value > tgtOrder[stk] * 0.97:
@@ -218,15 +223,19 @@ def handle_bar(context, bar_dict):
 				if stk not in context.portfolio.positions.keys():
 					order1 = order_target_value(stk, tgtOrder[stk])
 					# email and persist
-					if order1.status == ORDER_STATUS.FILLED:
+					if order1 and order1.status == ORDER_STATUS.FILLED:
 						info1 = insert_2_text(context.logFileName, order1)
 						email_info += info1
+						context.emailSend = True
 				if stk in context.portfolio.positions.keys() and context.portfolio.positions[stk].market_value < \
 								tgtOrder[stk] * 0.98 and context.isBuy[stk]:
 					order1 = order_target_value(stk, tgtOrder[stk])
 					# email and persist
-					if order1.status == ORDER_STATUS.FILLED:
+					if order1 and order1.status == ORDER_STATUS.FILLED:
 						info1 = insert_2_text(context.logFileName, order1)
 						email_info += info1
-			emailsender(context.receivers, email_info, 'stock_order_info')
+						context.emailSend = True
+			if context.emailSend:
+				emailsender(context.receivers, email_info, 'stock_order_info')
+			
 

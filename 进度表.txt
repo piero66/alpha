@@ -1,4 +1,12 @@
-﻿2017.5.17
+﻿2017.5.27
+TO DO
+1.Simon's strategy 邮件没有价格，同是市价单的问题
+
+DONE
+1.分级基金A
+2.Simon's strategy 跑通
+
+2017.5.17
 TO DO
 1.邮件格式待优化 
 2.市价单，发单信息获取不到price
