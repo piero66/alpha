@@ -1,16 +1,22 @@
 from rqalpha.api import *
-from rqalpha.mod.rqalpha_mod_sys_stock_realtime.data_board import realtime_tick, realtime_quotes_df
-from ext_utils import get_fundamental, get_tick, emailsender, insert_2_text
+from ext_utils import emailsender, insert_2_txt
 from rqalpha.environment import Environment
 from rqalpha.mod.rqalpha_mod_sys_stock_realtime.utils import get_tick, order_book_id_2_tushare_code
 
+
 def init(context):
-
 	context.fundA_list = {}
-	context.receivers = ["623486086@qq.com"]
+	context.target_doc = {}
+	
+	context.flag_down = -5.0
 
+	context.receivers = ["623486086@qq.com", "297998119@qq.com"]
+	context.logFileName = 'log_info.txt'
+	
+	
 def before_trading(context):
 	context.fundA_list = get_fund_a()
+
 
 def get_fund_a():
 	order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("FenjiA").order_book_id.tolist())
@@ -27,10 +33,8 @@ def get_fund_a():
 		t_list.append(k)
 	return t_list
 
+
 def handle_bar(context, bar_dict):
-	# 开始编写你的主要的算法逻辑
-	# bar_dict[order_book_id] 可以拿到某个证券的bar信息
-	# context.portfolio 可以拿到现在的投资组合状态信息
 	context.fundA_list = get_fund_a()
 	for fund in context.fundA_list:
 		fund1 = order_book_id_2_tushare_code(fund)
@@ -39,8 +43,23 @@ def handle_bar(context, bar_dict):
 		close = tick[fund]['prev_close']
 		# 涨跌幅
 		temp = round((now - close)/close * 100, 2)
-		if temp <= -5:
-			info = fund + '  ' + "now:" + str(now) + "close:" + str(close) + "涨跌幅（%）：" + str(temp)
+		if temp <= context.flag_down:
+			if fund not in context.target_doc:
+				context.target_doc[fund] = [False, temp, now, close]
+			elif temp != context.target_doc[fund][1]:
+				context.target_doc[fund] = [False, temp, now, close]
+		else:
+			if fund in context.target_doc:
+				context.target_doc.pop(fund)
+				
+	print(context.target_doc)
+	for fund, data in context.target_doc.items():
+		if not data[0]:
+			info = "fund_id:" + fund + "  涨跌幅(%):" + str(data[1]) + "  now:" + str(data[2]) + "  close:" + str(data[3]) + "\n"
 			emailsender(context.receivers, info, 'fenjiA')
+			insert_2_txt(context.logFileName, info)
+			data[0] = True
+			context.target_doc[fund] = data
+			
 	
 
