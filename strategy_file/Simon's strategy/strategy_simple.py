@@ -1,7 +1,7 @@
 from rqalpha.api import *
 
 import pandas as pd
-from ext_utils import get_fundamental, get_tick, insert_2_text, emailsender
+from ext_utils import get_fundamental, get_tick, insert_2_txt, emailsender
 
 import numpy as np
 from datetime import datetime, timedelta
@@ -24,16 +24,20 @@ def init(context):
 	context.holdSize = 8
 	context.holdWeight = 0.125
 	context.tgtOrder = {}
+	context.ptfOrder = {}
 	context.isBuy = {}
 	context.stocks1 = []
 	context.stocks2 = []
 	context.isSafe = True
 	
+	
 	context.emailSend = False
 	context.logFileName = 'log_info.txt'
 	context.receivers = ['623486086@qq.com']
 
+
 def before_trading(context, bar_dict):
+	context.emailSend = False
 	context.flag += 1
 	if context.isSafe:
 		search_value = {
@@ -158,20 +162,23 @@ def handle_bar(context, bar_dict):
 				stkList = stkList[:20]
 				stkList = getScore(stkList, bar_dict, context)
 				stkList = stkList[:context.holdSize]
-				weight = context.portfolio.portfolio_value * context.holdWeight
-				context.tgtOrder = {}
-				context.isBuy = {}
-				for stk in stkList:
-					context.tgtOrder[stk] = weight
-					context.isBuy[stk] = True
+				#weight = context.portfolio.portfolio_value * context.holdWeight
+				context.tgtOrder = stkList
+				#context.isBuy = {}
+				#for stk in stkList:
+					#context.tgtOrder[stk] = weight
+					#context.isBuy[stk] = True
 			else:
-				context.isBuy = {}
-				context.tgtOrder = {}
-				weight = context.portfolio.portfolio_value * 0.099
-				for stk in context.stocks2:
-					context.tgtOrder[stk] = weight
-					context.isBuy[stk] = True
+				#context.isBuy = {}
+				context.tgtOrder = context.stocks2
+				#weight = context.portfolio.portfolio_value * 0.099
+				#for stk in context.stocks2:
+					#context.tgtOrder[stk] = weight
+					#context.isBuy[stk] = True
 		tgtOrder = context.tgtOrder
+		
+		if not context.ptfOrder:
+			context.ptfOrder = tgtOrder
 		# if now.year == 2015 and now.month==6 and now.day>=20 and now.hour==14 and now.minute ==40:
 		#     stocks = ['601288.XSHG','000898.XSHE','601988.XSHG','601398.XSHG','600000.XSHG','600649.XSHG','601328.XSHG','600019.XSHG','601166.XSHG','601939.XSHG']
 		#     weight = context.portfolio.portfolio_value*0.099
@@ -192,50 +199,25 @@ def handle_bar(context, bar_dict):
 		#     for stk in context.stocks2 :
 		#         tgtOrder[stk]=weight
 		
-		if now.hour == 0 and now.minute >= 36:
-			weight = context.portfolio.portfolio_value * context.holdWeight
-			context.emailSend = False
-			email_info = ""
-			for stk in context.portfolio.positions.keys():
+		if now.hour == 14 and now.minute == 50:
+			#weight = context.portfolio.portfolio_value * context.holdWeight
+			emailSend = False
+			email_info = "卖出记录：\n"
+			for stk in context.ptfOrder.keys():
 				if stk not in tgtOrder.keys():
-					order1 = order_target_percent(stk, 0)
-					# email and persist
-					if order1 and order1.status == ORDER_STATUS.FILLED:
-						info1 = insert_2_text(context.logFileName, order1)
-						email_info += info1
-						context.emailSend = True
-				if context.portfolio.positions[stk].market_value > weight:
-					order1 = order_target_value(stk, weight * 0.99)
-					# email and persist
-					if order1 and order1.status == ORDER_STATUS.FILLED:
-						info1 = insert_2_text(context.logFileName, order1)
-						email_info += info1
-						context.emailSend = True
-			if context.emailSend:
-				emailsender(context.receivers, email_info, 'stock_order_info')
-		
-		if now.hour == 0 and now.minute >= 40:
-			context.emailSend = False
-			email_info = ""
+					info = 'order_book_id: ' + stk + '   price: ' + history_bars(stk, 1, '1d', 'tick')['close'] + '\n'
+					email_info += info
+					emailSend = True
+					
+			email_info += "买入记录:\n"
 			for stk in tgtOrder.keys():
-				if context.portfolio.positions[stk].market_value > tgtOrder[stk] * 0.97:
-					context.isBuy[stk] = False
-				if stk not in context.portfolio.positions.keys():
-					order1 = order_target_value(stk, tgtOrder[stk])
-					# email and persist
-					if order1 and order1.status == ORDER_STATUS.FILLED:
-						info1 = insert_2_text(context.logFileName, order1)
-						email_info += info1
-						context.emailSend = True
-				if stk in context.portfolio.positions.keys() and context.portfolio.positions[stk].market_value < \
-								tgtOrder[stk] * 0.98 and context.isBuy[stk]:
-					order1 = order_target_value(stk, tgtOrder[stk])
-					# email and persist
-					if order1 and order1.status == ORDER_STATUS.FILLED:
-						info1 = insert_2_text(context.logFileName, order1)
-						email_info += info1
-						context.emailSend = True
-			if context.emailSend:
+				if stk not in context.ptfOrder.keys():
+					info = 'order_book_id: ' + stk + '   price: ' + history_bars(stk, 1, '1d', 'tick')['close'] + '\n'
+					email_info += info
+					emailSend = True
+
+			if not context.emailSend and emailSend:
+				insert_2_txt(context.logFileName, email_info)
 				emailsender(context.receivers, email_info, 'stock_order_info')
-			
+				context.emailSend = True
 
