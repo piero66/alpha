@@ -149,9 +149,9 @@ def filterNewStk(context, bar_dict, stk):
 
 
 def handle_bar(context, bar_dict):
-	if True:  # context.flag % context.tradePeriod == 0:
+	if context.flag % context.tradePeriod == 0:
 		now = context.now
-		if now.hour == 0 and now.minute == 35:
+		if now.hour == 14 and now.minute == 40:
 			if isSafe(bar_dict, context):
 				stkList = filterGem(context.stocks1, context)
 				stkList = filterStAndPaused(stkList)
@@ -203,15 +203,15 @@ def handle_bar(context, bar_dict):
 			#weight = context.portfolio.portfolio_value * context.holdWeight
 			emailSend = False
 			email_info = "卖出记录：\n"
-			for stk in context.ptfOrder.keys():
-				if stk not in tgtOrder.keys():
+			for stk in context.ptfOrder:
+				if stk not in tgtOrder:
 					info = 'order_book_id: ' + stk + '   price: ' + history_bars(stk, 1, '1d', 'tick')['close'] + '\n'
 					email_info += info
 					emailSend = True
 					
 			email_info += "买入记录:\n"
-			for stk in tgtOrder.keys():
-				if stk not in context.ptfOrder.keys():
+			for stk in tgtOrder:
+				if stk not in context.ptfOrder:
 					info = 'order_book_id: ' + stk + '   price: ' + history_bars(stk, 1, '1d', 'tick')['close'] + '\n'
 					email_info += info
 					emailSend = True
@@ -220,4 +220,6 @@ def handle_bar(context, bar_dict):
 				insert_2_txt(context.logFileName, email_info)
 				emailsender(context.receivers, email_info, 'stock_order_info')
 				context.emailSend = True
+		if now.hour == 14 and now.minute == 55:
+			context.ptfOrder = tgtOrder
 

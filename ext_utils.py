@@ -50,7 +50,9 @@ def insert_2_txt(filename, info):
 
 
 def get_fundamental(search_value):
-	order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
+	env = Environment.get_instance()
+	order_book_id_list = sorted(
+		[instruments.order_book_id for instruments in env.data_proxy.all_instruments("CS", env.trading_dt)])
 	code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
 	realtime_tick = get_tick(code_list, 'qq')
 	v_list = realtime_tick
@@ -80,18 +82,3 @@ def get_fundamental(search_value):
 	for (k, v) in f_list:
 		t_list.append(k)
 	return t_list
-
-
-
-'''
-value_d = {}
-for code, data in realtime_tick.items():
-	value_d[code] = data[search_value] # 'total_market_value'
-list1 = sorted(value_d.items(), key=lambda value_d: value_d[1], reverse=False)
-realtime_quotes_df = get_realtime_quotes(code_list)
-
-['002133.XSHE', '600766.XSHG', '000668.XSHE', '000880.XSHE', '600145.XSHG']
-['300029.XSHE', '300321.XSHE', '000995.XSHE', '600768.XSHG', '600385.XSHG']
-'''
-	
-	

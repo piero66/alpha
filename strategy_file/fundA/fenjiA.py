@@ -19,7 +19,9 @@ def before_trading(context):
 
 
 def get_fund_a():
-	order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("FenjiA").order_book_id.tolist())
+	env = Environment.get_instance()
+	order_book_id_list = sorted(
+		[instruments.order_book_id for instruments in env.data_proxy.all_instruments("FenjiA", env.trading_dt)])
 	code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
 	realtime_tick = get_tick(code_list, 'sina')
 	v_list = {k: v for k, v in realtime_tick.items() if v['volume'] > 50000}
