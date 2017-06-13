@@ -17,21 +17,19 @@ def emailsender(receivers, all_text, event_subject):
 	mail_pass = "wokens6666"  # 口令
 
 	sender = 'tb@mail.wokens.com'
-
 	message = MIMEText(all_text, 'plain', 'utf-8')  # 邮件内容
 	message['From'] = Header(sender, 'utf-8')  # 发件人
-
-
 	message['Subject'] = Header(event_subject, 'utf-8')#标题
 
 	try:
-		smtpObj = smtplib.SMTP()
-		smtpObj.connect(mail_host, 25)
-		smtpObj.login(mail_user, mail_pass)
-		for receiver in receivers:
-			message['To'] = Header(receiver, 'utf-8')  # 收件人
-			smtpObj.sendmail(sender, receiver, message.as_string())
-		print("邮件发送成功")
+		if receivers:
+			smtpObj = smtplib.SMTP()
+			smtpObj.connect(mail_host, 25)
+			smtpObj.login(mail_user, mail_pass)
+			smtpObj.sendmail(sender, receivers, message.as_string())
+			print("邮件发送成功")
+		else:
+			pass
 	except smtplib.SMTPException:
 		print("Error: 无法发送邮件")
 
@@ -44,8 +42,15 @@ def insert_2_text(filename, order):
 	return info
 
 
+def insert_2_txt(filename, info):
+	fp = open(filename, 'a')
+	fp.writelines(info)
+
+
 def get_fundamental(search_value):
-	order_book_id_list = sorted(Environment.get_instance().data_proxy.all_instruments("CS").order_book_id.tolist())
+	env = Environment.get_instance()
+	order_book_id_list = sorted(
+		[instruments.order_book_id for instruments in env.data_proxy.all_instruments("CS", env.trading_dt)])
 	code_list = [order_book_id_2_tushare_code(code) for code in order_book_id_list]
 	realtime_tick = get_tick(code_list, 'qq')
 	v_list = realtime_tick
@@ -75,18 +80,3 @@ def get_fundamental(search_value):
 	for (k, v) in f_list:
 		t_list.append(k)
 	return t_list
-
-
-
-'''
-value_d = {}
-for code, data in realtime_tick.items():
-	value_d[code] = data[search_value] # 'total_market_value'
-list1 = sorted(value_d.items(), key=lambda value_d: value_d[1], reverse=False)
-realtime_quotes_df = get_realtime_quotes(code_list)
-
-['002133.XSHE', '600766.XSHG', '000668.XSHE', '000880.XSHE', '600145.XSHG']
-['300029.XSHE', '300321.XSHE', '000995.XSHE', '600768.XSHG', '600385.XSHG']
-'''
-	
-	

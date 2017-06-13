@@ -4,8 +4,13 @@
 实时更新来源rqalpha的本地历史数据。
 通过esayquotation 获取了财务信息，包括市值,PE,PB 筛选股票
 
+环境依赖：
+1.python 3.6 （Anancoda 3）
+2.rqalpha：安装rqalpha 后用github中 rqalpha 文件夹 替换源文件
+    
+    
 一.程序运行方式
-1.terminal 直接执行 python Run.py
+1.terminal 直接执行 python run.py
   策略参数选项
   config = {
     "base": {
