@@ -22,11 +22,14 @@ def emailsender(receivers, all_text, event_subject):
 	message['Subject'] = Header(event_subject, 'utf-8')#标题
 
 	try:
-		smtpObj = smtplib.SMTP()
-		smtpObj.connect(mail_host, 25)
-		smtpObj.login(mail_user, mail_pass)
-		smtpObj.sendmail(sender, receivers, message.as_string())
-		print("邮件发送成功")
+		if receivers:
+			smtpObj = smtplib.SMTP()
+			smtpObj.connect(mail_host, 25)
+			smtpObj.login(mail_user, mail_pass)
+			smtpObj.sendmail(sender, receivers, message.as_string())
+			print("邮件发送成功")
+		else:
+			pass
 	except smtplib.SMTPException:
 		print("Error: 无法发送邮件")
 
